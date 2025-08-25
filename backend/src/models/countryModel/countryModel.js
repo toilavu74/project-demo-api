@@ -13,9 +13,13 @@ const deleteCountry = async (id) => {
 const listCountry = async () => {
   return await prisma.country.findMany();
 };
+const getCountryById = async (id) => {
+  return await prisma.country.findFirst({ where: { id: id } });
+};
 module.exports = {
   createCountry,
   editCountry,
   deleteCountry,
   listCountry,
+  getCountryById,
 };

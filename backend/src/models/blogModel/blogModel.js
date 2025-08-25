@@ -20,9 +20,14 @@ const listBlog = async () => {
   return await prisma.blog.findMany();
 };
 
+const getBlogById = async (id) => {
+  return await prisma.blog.findFirst({ where: { id: id } });
+};
+
 module.exports = {
   createBlog,
   editBlog,
   deleteBlog,
   listBlog,
+  getBlogById,
 };

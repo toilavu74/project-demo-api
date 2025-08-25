@@ -20,7 +20,9 @@ const checkEmail = async (email) => {
 };
 
 const getUserById = async (userId) => {
-  return prisma.user.findUnique({ where: { id: userId } });
+  return prisma.user.findUnique({
+    where: { id: userId },
+  });
 };
 
 const checkLoginUser = async (data) => {
@@ -47,7 +49,7 @@ const checkLoginUser = async (data) => {
 const updateUser = (id, data) => {
   return prisma.user.update({
     where: { id: id },
-    data,
+    data: data,
   });
 };
 

@@ -4,6 +4,11 @@ const userModel = require("../../models/userModel/userModel");
 const userValidation = require("../../validation/userValidation/userValidation");
 const userUpdateValtion = require("../../validation/userValidation/userUpdateValidation");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+function createJWT(userId, username) {
+  const token = jwt.sign({ userId, username }, "admin", { expiresIn: "10h" });
+  return token;
+}
 
 const multer = require("multer");
 const path = require("path");
@@ -31,13 +36,14 @@ const registerUser = async (req, res) => {
 
   const saveFiles = [];
   avatarFiles.forEach((file) => {
-    const fileName = `${Date.now()} - ${Math.round(
+    const fileName = `${Date.now()}-${Math.round(
       Math.random() * 1e9
     )}${path.extname(file.originalname)}`;
     const filePath = `public/uploads/user/${fileName}`;
     fs.writeFileSync(filePath, file.buffer);
     saveFiles.push(fileName);
   });
+  data.id_country = parseInt(data.id_country, 10);
   data.level = 0;
   data.avatar = JSON.stringify(saveFiles);
   data.password = await bcrypt.hash(data.password, 10);
@@ -52,7 +58,7 @@ const registerUser = async (req, res) => {
         fs.unlinkSync(filePath);
       }
     });
-    return res.status(500).json({ error: "Loi tao user" });
+    return res.status(500).json({ error: error.message || "Loi tao user" });
   }
 };
 
@@ -81,10 +87,12 @@ const checkLoginUser = async (req, res) => {
   }
   const checkLogin = await userModel.checkLoginUser(data);
   if (!checkLogin) {
-    return res.status(400).json({ error: "Sai email hoac mat khau" });
+    return res.status(400).json({ errors: "Sai email hoac mat khau" });
   } else {
+    const token = createJWT(checkLogin.id, checkLogin.name);
     return res.json({
       success: "Dang nhap thanh cong",
+      token: token,
       user: checkLogin,
     });
   }
@@ -102,7 +110,7 @@ const updateUser = async (req, res) => {
   let saveFiles = [];
   if (avatarFiles.length > 0) {
     avatarFiles.forEach((file) => {
-      const fileName = `${Date.now()} - ${Math.round(
+      const fileName = `${Date.now()}-${Math.round(
         Math.random() * 1e9
       )}${path.extname(file.originalname)}`;
       const filePath = `public/uploads/user/${fileName}`;
@@ -120,9 +128,20 @@ const updateUser = async (req, res) => {
     const oldUser = await userModel.getUserById(id);
     data.password = oldUser.password;
   }
-
-  const user = await userModel.updateUser(id, data);
-  return res.json(user);
+  data.id_country = parseInt(data.id_country, 10);
+  data.level = parseInt(data.level, 10);
+  try {
+    const user = await userModel.updateUser(id, data);
+    return res.json(user);
+  } catch (error) {
+    saveFiles.forEach((fileName) => {
+      const filePath = `public/uploads/user/${fileName}`;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+    return res.status(500).json({ error: error.message });
+  }
 };
 
 module.exports = {

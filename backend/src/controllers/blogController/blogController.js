@@ -78,10 +78,17 @@ const listBlog = async (req, res) => {
   return res.json(blog);
 };
 
+const getBlogById = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const blog = await blogModel.getBlogById(id);
+  return res.json(blog);
+};
+
 module.exports = {
   createBlog,
   upload,
   editBlog,
   deleteBlog,
   listBlog,
+  getBlogById,
 };

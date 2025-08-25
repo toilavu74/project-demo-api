@@ -36,9 +36,15 @@ const listCountry = async (req, res) => {
   return res.json(country);
 };
 
+const getCountryById = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const country = await countryModel.getCountryById(id);
+  return res.json(country);
+};
 module.exports = {
   createCountry,
   editCountry,
   deleteCountry,
   listCountry,
+  getCountryById,
 };
